@@ -82,6 +82,10 @@ namespace {
 
             if(destination_resource.empty()) {
                 destination_resource = extract_object_parameter<std::string>("destRescName", cond_input);
+                if(source_resource == destination_resource) {
+                    // e.g. if iput -R is used, which has no -S, the source & destination will be the same
+                    destination_resource.clear();
+                }
             }
 
             if(destination_resource.empty()) {

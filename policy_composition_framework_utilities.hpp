@@ -59,6 +59,8 @@ namespace irods::policy_composition {
     std::string demangle(const char* name);
 
     auto any_to_string(boost::any&);
+    auto error_to_json(const irods::error&) -> json;
+    auto contains_error(const std::string&) -> bool;
     void exception_to_rerror(const irods::exception&, rError_t&);
     void exception_to_rerror(const int, const char*, rError_t&);
     auto collapse_error_stack(rError_t& _error);
@@ -73,7 +75,7 @@ namespace irods::policy_composition {
     auto serialize_dataObjInp_to_json(const dataObjInp_t&) -> json;
     auto serialize_openedDataObjInp_to_json(const openedDataObjInp_t& _inp) -> json;
     auto serialize_rsComm_to_json(rsComm_t*) -> json;
-    auto invoke_policies_for_event(ruleExecInfo_t*, const std::string&, const std::string&, const json&, const json&) -> void;
+    auto invoke_policies_for_event(ruleExecInfo_t*, const bool, const std::string&, const std::string&, const json&, const json&) -> void;
 
 } // namespace irods::policy_composition
 

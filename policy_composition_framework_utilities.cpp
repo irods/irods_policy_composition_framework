@@ -82,14 +82,24 @@ namespace irods::policy_composition {
            _a.type().name()));
     } // any_to_string
 
+    auto error_to_json(const irods::error& e) -> json
+    {
+        return {{"status",  "error"},
+                {"code",    e.code()},
+                {"message", e.result()}};
+
+    } // error_to_json
+
+    auto contains_error(const std::string& s) -> bool
+    {
+        auto j = json::parse(s);
+        return j.contains("status") && j.at("status") == "error";
+
+    } // contains_error
+
     void exception_to_rerror(
         const irods::exception& _exception,
         rError_t&               _error) {
-
-#if 1
-        irods::stacktrace st;
-        rodsLog(LOG_NOTICE, "%s", st.dump().c_str());
-#endif
 
         std::string msg;
         for(const auto& i : _exception.message_stack()) {
@@ -106,10 +116,7 @@ namespace irods::policy_composition {
         const int   _code,
         const char* _what,
         rError_t&   _error) {
-#if 1
-        irods::stacktrace st;
-        rodsLog(LOG_NOTICE, "%s", st.dump().c_str());
-#endif
+
         addRErrorMsg(
             &_error,
             _code,
@@ -156,6 +163,7 @@ namespace irods::policy_composition {
 
             THROW(err.code(), err.result());
         }
+
     } // invoke_policy
 
     auto advance_or_throw(
@@ -676,6 +684,7 @@ namespace irods::policy_composition {
 
     void invoke_policies_for_event(
           ruleExecInfo_t*    rei
+        , const bool         stop_on_error
         , const std::string& event
         , const std::string& rule_name
         , const json&        policies_to_invoke
@@ -705,7 +714,7 @@ namespace irods::policy_composition {
 
                     if(policy.contains(kw::parameters)) {
                         pam = policy.at(kw::parameters);
-                        pam.insert(parameters.begin(), parameters.end()); // is this is goofing things
+                        pam.insert(parameters.begin(), parameters.end()); // is this is goofing things?
                     }
                     else {
                         pam = parameters;
@@ -720,8 +729,8 @@ namespace irods::policy_composition {
                         continue;
                     } // if conditional
 
-                    auto ops = policy[kw::events];
-                    auto pnm = std::string{policy[kw::policy_to_invoke]};
+                    auto ops = policy.at(kw::events);
+                    auto pnm = std::string{policy.at(kw::policy_to_invoke)};
 
                     for(auto& op : ops) {
                         std::string upper_operation{op};
@@ -743,6 +752,11 @@ namespace irods::policy_composition {
                         args.push_back(boost::any(&out));
 
                         invoke_policy(rei, pnm, args);
+
+                        if(stop_on_error && out.size() > 0 && contains_error(out)) {
+                            freeRErrorContent(&rei->rsComm->rError);
+                            return;
+                        }
 
                     } // for ops
 

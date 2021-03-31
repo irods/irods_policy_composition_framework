@@ -17,8 +17,7 @@
 namespace irods::policy_composition::policy_engine {
 
     // clang-format off
-    namespace ipc  = irods::policy_composition;
-
+    namespace pc   = irods::policy_composition;
     using     json = nlohmann::json;
 
     struct context {
@@ -31,7 +30,6 @@ namespace irods::policy_composition::policy_engine {
         json            configuration{};
     }; // struct context
 
-    // clang-format off
     using arg_type            = std::string*;
     using plugin_type         = pluggable_rule_engine<irods::default_re_ctx>;
     using plugin_pointer_type = plugin_type*;
@@ -144,9 +142,9 @@ namespace irods::policy_composition::policy_engine {
                     policy_context.rei = rei;
 
                     auto it = _arguments.begin();
-                    auto* parameters     = boost::any_cast<std::string*>(*it); ++it;
-                    auto* configuration  = boost::any_cast<std::string*>(*it); ++it;
-                    auto* out_variable   = boost::any_cast<std::string*>(*it);
+                    auto* parameters    = boost::any_cast<std::string*>(*it); ++it;
+                    auto* configuration = boost::any_cast<std::string*>(*it); ++it;
+                    auto* out_variable  = boost::any_cast<std::string*>(*it);
 
                     bool log_errors = false;
 
@@ -165,11 +163,16 @@ namespace irods::policy_composition::policy_engine {
                     auto err = policy_implementation(policy_context, out_variable);
 
                     if(!err.ok()) {
+                        // support for stop_on_error behavior
+                        *out_variable = pc::error_to_json(err).dump(4);
+
                         addRErrorMsg(
                                 &rei->rsComm->rError,
                                 err.code(),
                                 err.result().c_str());
+
                         if(log_errors) { irods::log(err); }
+
                         THROW(err.code(), err.result());
                     }
                 }
@@ -178,7 +181,7 @@ namespace irods::policy_composition::policy_engine {
             // TODO :: add more context to these errors for the user
             catch(const std::invalid_argument& _e) {
                 if(log_errors) { irods::log(err); }
-                ipc::exception_to_rerror(
+                pc::exception_to_rerror(
                     SYS_NOT_SUPPORTED,
                     _e.what(),
                     rei->rsComm->rError);
@@ -188,7 +191,7 @@ namespace irods::policy_composition::policy_engine {
             }
             catch(const boost::bad_any_cast& _e) {
                 if(log_errors) { irods::log(err); }
-                ipc::exception_to_rerror(
+                pc::exception_to_rerror(
                     SYS_NOT_SUPPORTED,
                     _e.what(),
                     rei->rsComm->rError);
@@ -198,7 +201,7 @@ namespace irods::policy_composition::policy_engine {
             }
             catch(const exception& _e) {
                 if(log_errors) { irods::log(err); }
-                ipc::exception_to_rerror(
+                pc::exception_to_rerror(
                     _e,
                     rei->rsComm->rError);
                 return ERROR(
