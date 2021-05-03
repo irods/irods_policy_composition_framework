@@ -61,6 +61,7 @@ namespace irods::policy_composition {
     auto any_to_string(boost::any&);
     auto error_to_json(const irods::error&) -> json;
     auto contains_error(const std::string&) -> bool;
+    void json_to_rerror(const json&, rError_t&);
     void exception_to_rerror(const irods::exception&, rError_t&);
     void exception_to_rerror(const int, const char*, rError_t&);
     auto collapse_error_stack(rError_t& _error);

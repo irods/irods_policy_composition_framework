@@ -10,6 +10,7 @@
 #include "rcMisc.h"
 #include <boost/any.hpp>
 #include "policy_composition_framework_utilities.hpp"
+#include "policy_composition_framework_plugin_configuration_json.hpp"
 
 #include "json.hpp"
 #include "fmt/format.h"
@@ -35,6 +36,8 @@ namespace irods::policy_composition::policy_engine {
     using plugin_pointer_type = plugin_type*;
     using implementation_type = std::function<error(const context&, arg_type)>;
 
+    auto                log_errors{false};
+    json                plugin_config;
     context             policy_context;
     implementation_type policy_implementation;
     // clang-format on
@@ -59,7 +62,7 @@ namespace irods::policy_composition::policy_engine {
         auto rule_name_is_supported(const std::string& _rule_name) -> bool
         {
             auto supported = (policy_context.policy_name  == _rule_name ||
-                    policy_context.policy_usage == _rule_name);
+                              policy_context.policy_usage == _rule_name);
 
             return supported;
 
@@ -102,12 +105,20 @@ namespace irods::policy_composition::policy_engine {
 
         } // get_log_errors_flag
 
-        auto log_parse_error(const std::string& msg) -> void
+        auto client_message(const json& _msg) -> void
         {
-            rodsLog(LOG_ERROR
-                  , "policy_engine :: failed to parse metdata substitution [%s]"
-                  , msg.c_str());
-        }
+            if(!log_errors) {
+                return;
+            }
+
+            addRErrorMsg(
+                    &policy_context.rei->rsComm->rError,
+                    0,
+                    _msg.dump(4).c_str());
+
+            rodsLog(LOG_NOTICE, "%s", _msg.dump(4).c_str());
+
+        } // details
 
         error exec_rule(
             default_re_ctx&
@@ -121,8 +132,6 @@ namespace irods::policy_composition::policy_engine {
             if(!err.ok()) {
                 return ERROR(SYS_NOT_SUPPORTED, err.result());
             }
-
-            bool log_errors = false;
 
             try {
                 if(policy_context.policy_usage == _rule_name) {
@@ -146,14 +155,18 @@ namespace irods::policy_composition::policy_engine {
                     auto* configuration = boost::any_cast<std::string*>(*it); ++it;
                     auto* out_variable  = boost::any_cast<std::string*>(*it);
 
-                    bool log_errors = false;
-
                     if(!parameters->empty()) {
                         policy_context.parameters = json::parse(*parameters);
                     }
 
+                    policy_context.configuration = plugin_config;
                     if(!configuration->empty()) {
-                        policy_context.configuration = json::parse(*configuration);
+                        // combine policy config and plugin specific config
+                        auto j = json::parse(*configuration);
+
+                        for(auto&& [k, v] : j.items()) {
+                            policy_context.configuration[k] = v;
+                        }
                     }
 
                     log_errors = get_log_errors_flag(
@@ -274,6 +287,8 @@ namespace irods::policy_composition::policy_engine {
         policy_context.policy_name   = _policy_name;
         policy_context.policy_usage  = _policy_name + "_usage";
         policy_context.instance_name = _plugin_name;
+
+        plugin_config = get_plugin_specific_configuration(_plugin_name);
 
         auto rule_engine_plugin = new plugin_type(policy_context.instance_name, "");
 

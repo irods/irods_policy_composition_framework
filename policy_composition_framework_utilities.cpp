@@ -97,6 +97,16 @@ namespace irods::policy_composition {
 
     } // contains_error
 
+    void json_to_rerror(
+        const json& _msg,
+        rError_t&   _error) {
+
+        addRErrorMsg(
+            &_error,
+            0,
+            _msg.dump(4).c_str());
+    } // json_to_rerror
+
     void exception_to_rerror(
         const irods::exception& _exception,
         rError_t&               _error) {
