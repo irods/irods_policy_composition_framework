@@ -4,11 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "rcMisc.h"
-#include "irods_get_full_path_for_config_file.hpp"
-#include "irods_server_properties.hpp"
+#include <irods/rcMisc.h>
+#include <irods/irods_get_full_path_for_config_file.hpp>
+#include <irods/irods_server_properties.hpp>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace irods {
 

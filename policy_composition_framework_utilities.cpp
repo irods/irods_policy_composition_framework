@@ -2,17 +2,21 @@
 #include "policy_composition_framework_utilities.hpp"
 #include "policy_composition_framework_parameter_capture.hpp"
 
-#include "irods_resource_backport.hpp"
-#include "irods_stacktrace.hpp"
+//#include "irods_resource_backport.hpp"
+#include <irods/irods_stacktrace.hpp>
 
-#include "rcMisc.h"
-#include "objDesc.hpp"
+#include <irods/rcMisc.h>
+#include <irods/objDesc.hpp>
+#include <irods/fileOpr.hpp>
+#include <irods/msParam.h>
 
 #include "boost/lexical_cast.hpp"
 #include "fmt/format.h"
 
 #define IRODS_METADATA_ENABLE_SERVER_SIDE_API
-#include "metadata.hpp"
+#include <irods/metadata.hpp>
+
+#include <boost/regex.hpp>
 
 // Persistent L1 File Descriptor Table
 extern l1desc_t L1desc[NUM_L1_DESC];
@@ -65,7 +69,7 @@ namespace irods::policy_composition {
         }
         else if(_a.type() == typeid(msParam_t*)) {
             msParam_t* msp = boost::any_cast<msParam_t*>(_a);
-            if(msp->type == STR_MS_T) {
+            if(0 == strcmp(msp->type, STR_MS_T)) {
                 return std::string{static_cast<char*>(msp->inOutStruct)};
             }
             else {

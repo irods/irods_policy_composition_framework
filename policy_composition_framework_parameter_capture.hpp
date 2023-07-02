@@ -1,19 +1,19 @@
 #ifndef IRODS_POLICY_COMPOSITION_FRAMEWORK_PARAMETER_CAPTURE
 #define IRODS_POLICY_COMPOSITION_FRAMEWORK_PARAMETER_CAPTURE
 
-#include "irods_re_plugin.hpp"
-#include "irods_exception.hpp"
-#include "irods_hierarchy_parser.hpp"
-#include "irods_stacktrace.hpp"
-#include "rodsError.h"
+#include <irods/irods_re_plugin.hpp>
+#include <irods/irods_exception.hpp>
+#include <irods/irods_hierarchy_parser.hpp>
+#include <irods/irods_stacktrace.hpp>
+#include <irods/rodsError.h>
 
 #define IRODS_FILESYSTEM_ENABLE_SERVER_SIDE_API
-#include "filesystem.hpp"
+#include <irods/filesystem.hpp>
 
 #define IRODS_QUERY_ENABLE_SERVER_SIDE_API
-#include "irods_query.hpp"
+#include <irods/irods_query.hpp>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace {
 

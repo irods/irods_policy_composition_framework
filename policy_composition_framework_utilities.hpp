@@ -3,14 +3,14 @@
 
 #include "policy_composition_framework_keywords.hpp"
 
-#include "irods_re_plugin.hpp"
-#include "irods_exception.hpp"
-#include "irods_at_scope_exit.hpp"
+#include <irods/irods_re_plugin.hpp>
+#include <irods/irods_exception.hpp>
+#include <irods/irods_at_scope_exit.hpp>
 
-#include "rodsError.h"
-#include "generalAdmin.h"
+#include <irods/rodsError.h>
+#include <irods/generalAdmin.h>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <string>
 #include <map>

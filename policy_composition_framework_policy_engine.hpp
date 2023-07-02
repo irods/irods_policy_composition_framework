@@ -1,19 +1,19 @@
 #ifndef IRODS_POLICY_COMPOSITION_FRAMEWORK_POLICY_ENGINE_HPP
 #define IRODS_POLICY_COMPOSITION_FRAMEWORK_POLICY_ENGINE_HPP
 
-#include "irods_re_plugin.hpp"
-#include "irods_re_ruleexistshelper.hpp"
+#include <irods/irods_re_plugin.hpp>
+#include <irods/irods_re_ruleexistshelper.hpp>
+#include <irods/rcMisc.h>
 
 #define IRODS_QUERY_ENABLE_SERVER_SIDE_API
-#include "irods_query.hpp"
+#include <irods/irods_query.hpp>
 
-#include "rcMisc.h"
 #include <boost/any.hpp>
+#include <nlohmann/json.hpp>
+#include <fmt/format.h>
+
 #include "policy_composition_framework_utilities.hpp"
 #include "policy_composition_framework_plugin_configuration_json.hpp"
-
-#include "json.hpp"
-#include "fmt/format.h"
 
 namespace irods::policy_composition::policy_engine {
 
