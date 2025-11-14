@@ -15,6 +15,62 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE_INIT "-Wl,--gc-sections -Wl,-z,combreloc")
 set(PROJECT_NAME irods_rule_engine_plugin)
 string(REPLACE "_" "-" PROJECT_NAME_HYPHENS ${PROJECT_NAME})
 
+if (IRODS_ENABLE_ADDRESS_SANITIZER)
+  # The following options are compiled into all binaries and allow them to start even
+  # when an ODR violation is detected.
+  #
+  # Make sure the correct llvm-symbolizer binary is available to Address Sanitizer. This binary
+  # allows debug symbols to be reported appropriately. There are two ways to do this:
+  #
+  #     export PATH=/opt/irods-externals/clang13.0.0-0/bin:$PATH
+  #
+  # - or -
+  #
+  #     export ASAN_SYMBOLIZER_PATH=/opt/irods-externals/clang13.0.0-0/bin/llvm-symbolizer
+  #
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+endif()
+
+if (IRODS_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER)
+  # Make sure the correct llvm-symbolizer binary is available to Undefined Behavior Sanitizer. This binary
+  # allows debug symbols to be reported appropriately. Additionally, set options for logging.
+  #
+  #     export PATH=/opt/irods-externals/clang13.0.1-0/bin:$PATH
+  add_compile_options(
+    -fsanitize=undefined
+    -fsanitize=float-divide-by-zero
+    -fsanitize=unsigned-integer-overflow
+    -fsanitize=local-bounds
+    -fsanitize=nullability)
+  add_link_options(
+    -fsanitize=undefined
+    -fsanitize=float-divide-by-zero
+    -fsanitize=unsigned-integer-overflow
+    -fsanitize=local-bounds
+    -fsanitize=nullability)
+
+  if (IRODS_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER_IMPLICIT_CONVERSION_CHECK)
+     add_compile_options(-fsanitize=implicit-conversion)
+     add_link_options(-fsanitize=implicit-conversion)
+  endif()
+endif()
+
+if (IRODS_ENABLE_ADDRESS_SANITIZER OR IRODS_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER)
+  add_compile_options(
+    -fno-omit-frame-pointer
+    -fno-optimize-sibling-calls
+    -O1)
+  add_link_options(
+    -fno-omit-frame-pointer
+    -fno-optimize-sibling-calls
+    -O1)
+else()
+  set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -Wl,-z,defs")
+  set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_MODULE_LINKER_FLAGS_INIT} -Wl,-z,defs")
+  set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_SHARED_LINKER_FLAGS_INIT} -Wl,-z,defs")
+endif()
+
 project( ${PROJECT_NAME} C CXX)
 include(${IRODS_TARGETS_PATH})
 
